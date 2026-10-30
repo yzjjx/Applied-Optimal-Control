@@ -12,10 +12,12 @@ ode2 = @(t,x) odefun(t,x,w);
 sf = xout(end,1);
 dsf = xout(end,2);
 
+
 N = numel(w)-1;
 force_vector = w(1:N);
 time_points = linspace(0,w(end),N);
 
+% 每次优化都会运行仿真，用来查看约束是否有效
 % plot the control input
 figure(1)
 plot(time_points,force_vector,'k-x','LineWidth',3)
