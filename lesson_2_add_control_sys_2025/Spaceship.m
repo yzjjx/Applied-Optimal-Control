@@ -26,7 +26,7 @@ axis equal
 time_anim = linspace(0,tout(end),100);
 x_anim = interp1(tout,zout(:,1),time_anim);
 y_anim = interp1(tout,zout(:,3),time_anim);
-theta_anim = interp1(tout,zout(:,5),time_anim);
+theta_anim = interp1(tout,zout(:,chao5),time_anim);
 
 figure(2)
 

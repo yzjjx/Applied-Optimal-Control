@@ -80,6 +80,13 @@ EOM：运动方程，描述物体受到力或者力矩之后，运动状态如�
 
 具体代码可以参考：`lesson_2_add_control_sys_2025\Pendulum_control.m`
 
+反馈控制系统如图：
+
+<div align="center">
+    <img src="..\fig\反馈控制系统.png">
+    <br>
+</div>
+
 # 飞船运行
 定义动力学方程有：
 $$
