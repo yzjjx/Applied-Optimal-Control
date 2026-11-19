@@ -201,4 +201,25 @@ end
 
 将矩形计算改为梯形计算可以优化这一点
 
-## 继续添加约束
+同时可以检查顺序优先性是否到0
+
+<div align="center">
+    <img src="..\fig\顺序优先性检查.png">
+    <br>
+</div>
+
+<div align="center">
+    <img src="..\fig\N为15不满足约束.png">
+    <br>
+</div>
+
+<div align="center">
+    <img src="..\fig\N为5满足约束.png">
+    <br>
+</div>
+
+可以查报错码，分析fmincon的错误原因
+<div align="center">
+    <img src="..\fig\报错原因.png">
+    <br>
+</div>
