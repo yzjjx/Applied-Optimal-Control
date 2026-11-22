@@ -56,4 +56,38 @@ To achieve a convex quadratic programming formulation, the cost must be quadrati
 
 为了将优化问题构造成一个凸二次规划（Convex Quadratic Programming，凸 QP）问题，代价函数必须是二次型的，即其 Hessian 矩阵（海森矩阵）应当是常数矩阵，并且具有非负的曲率
 
+## MPC代码
+使用MPC控制器将物体移动到指定的位置
+
+首先是仿真代码
+```matlab
+clc;clear;close all;
+% 模型参数
+m = 10;
+Fmin = -10;
+Fmax = 10;
+speedmin = -1;
+speedmax = 1;
+
+% ODE45动力学
+Asys = [0 1 0 0;0 0 0 0;0 0 0 1;0 0 0 0];
+Bsys = [0 0;1/m 0;0 0;0 1/m];
+dynamics = @(t,z,u) Asys*z+Bsys*u;
+u = [0;0];
+dynamics_call = @(t,z) dynamics(t,z,u);
+
+% 仿真参数
+tspan = [0 10];
+z0 = [0;0;0;0];
+
+[tout,zout] = ode45(dynamics_call,tspan,z0);
+
+% 绘图
+plot(zout(:,1),zout(:,3),'k-')
+xlabel('x pos')
+ylabel('y pos')
+```
+
+之后，建立优化问题
+
 
