@@ -56,10 +56,62 @@ To achieve a convex quadratic programming formulation, the cost must be quadrati
 
 为了将优化问题构造成一个凸二次规划（Convex Quadratic Programming，凸 QP）问题，代价函数必须是二次型的，即其 Hessian 矩阵（海森矩阵）应当是常数矩阵，并且具有非负的曲率
 
-## MPC代码
+## MPC代码（直接配点法）
 使用MPC控制器将物体移动到指定的位置
 
+构建决策向量，假设节点数量为N，因为使用配点法，决策向量需要包含输入力和状态，为：
+
+$$
+w = \begin{bmatrix}
+F_{x1} \\
+... \\
+F_{xN} \\
+F_{y1} \\
+... \\
+F_{yN} \\
+x_1 \\
+ ...\\
+x_N \\
+ ...\\
+dx_1 \\
+ ...\\
+dx_N \\
+ ...\\
+y_1 \\
+ ...\\
+y_N \\
+ ...\\
+dy_1 \\
+ ...\\
+dy_N \\
+
+\end{bmatrix}
+$$
+
+Physics (defect) constraints.
+
+Use Explicit (Forward) Euler Integration.
+
+物理（缺陷）约束。
+
+使用显式（前向）欧拉积分法。
+
+使用前线欧拉进行物理约束：
+
+$$
+s_{k+1} = s_k + \dot{s}_k\Delta t
+$$
+
+可以得到：
+
+$$
+z_{k+1}  = z_k + (Az_k+Bu_k)(T/(N+1))
+$$
+
+将等式右边的移动到左边，就是等式约束
+
 首先是仿真代码
+
 ```matlab
 clc;clear;close all;
 % 模型参数
@@ -88,6 +140,117 @@ xlabel('x pos')
 ylabel('y pos')
 ```
 
-之后，建立优化问题
+对于二次规划，有标准式子：
 
+$$
+w^{*} = argmin \frac{1}{2} w^THw+c^Tw
+$$
+
+其中，H为hessian矩阵，c为gradint
+
+限制条件为：
+
+$$
+A_{con}w\le b_{con}
+$$
+
+$$
+A_{coneq}w =  b_{coneq}
+$$
+
+
+MPC基本代码如下：
+
+```matlab
+clc;clear;close all;
+% 模型参数
+m = 10;
+Fmin = -10;
+Fmax = 10;
+speedmin = -1;
+speedmax = 1;
+
+% ODE45动力学
+Asys = [0 1 0 0;0 0 0 0;0 0 0 1;0 0 0 0];
+Bsys = [0 0;1/m 0;0 0;0 1/m];
+dynamics = @(t,z,u) Asys*z + Bsys*u;
+
+
+% 建立优化问题，使用符号计算来获取二次规划参数
+N = 10;
+zsym = sym('z',[4,N]);
+usym = sym('u',[2;N]);
+
+% 定义决策向量
+decision_vector_control_column = reshape(usym.',[2*N,1]);
+decision_vector_state_column = reshape(zsym.',[4*N,1]);
+w = [decision_vector_control_column;decision_vector_state_column];
+
+% 定义代价函数
+T = 2;% Time Horizon
+xtarget = 5;
+ytarget = 2;
+dT = T/(N-1);
+cost = sum(((zsym(1,:)-xtarget)).^2+((zsym(3,:)-ytarget)).^2+usym(1,:).^2+usym(2,:).^2)*dT;
+
+% 计算hessian矩阵
+H = hessian(cost,w);
+H = double(H);
+c = gradient(cost,w);
+c = subs(c,w,zeros(size(w)));
+c = double(c);
+
+% 仿真参数
+tspan = [0 10];
+z0 = [0;0;0;0];
+
+%% 创建仿真循环
+% 每次采样时间dT，获取当前状态z0；进行轨迹优化；
+t_current = tspan(1);
+
+t_sim = [];% Running list of all simulation times from all ode45 calls
+z_sim = [];% Running list of all simulation states from all ode45 calls
+for iter = 1:numel(0:dT:10)
+
+    % 更新约束
+    % 约束（前向欧拉）
+    physics_constraints = zsym(:,2:N)-zsym(:,1:N-1)-(Asys*zsym(:,1:N-1)+Bsys*usym(:,1:N-1))*(T/(N-1));
+    % 初始条件
+    initial_condition_constraints = zsym(:,1)-z0;
+
+    eq_con = [physics_constraints(:);initial_condition_constraints(:)];
+    Aconeq = jacobian(eq_con,w);
+    Aconeq = double(Aconeq);
+    bconeq = -subs(eq_con,w,zeros(size(w)));
+    bconeq = double(bconeq);
+
+    wstar = quadprog(H,c,[],[],Aconeq,bconeq);
+
+    % 从轨迹优化中得到控制输入
+    u = [wstar(1);wstar(N+1)];
+    dynamics_call = @(t,z) dynamics(t,z,u);
+
+    tspan_iter = [t_current t_current+dT-1e-6];
+    [tout,zout] = ode45(dynamics_call,tspan_iter,z0);
+    t_current = t_current + dT;
+
+    % 更新当前状态
+    z0 = zout(end,:).';
+
+    t_sim = [t_sim;tout];
+    z_sim = [z_sim;zout];
+end
+
+% 绘图
+plot(z_sim(:,1),z_sim(:,3),'k-')
+xlabel('x pos')
+ylabel('y pos')
+
+xplan = wstar(2*N+1:3*N);
+yplan = wstar(4*N+1:5*N);
+plot(xplan,yplan,'kx-');
+axis equal
+xlabel('x pos')
+ylabel('y pos')
+```
 

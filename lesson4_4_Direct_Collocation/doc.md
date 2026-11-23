@@ -1,5 +1,32 @@
 # 直接配点法
 
+Shooting Methods
+
+(Must have a time-marching integration to check the outcome of a control.)
+
+Collocation Methods
+
+Plot an "original" trajectory and then check if it obeys physics.
+
+打靶法（Shooting Methods）
+
+必须进行时间递推积分，以检查控制输入产生的结果。
+
+配点法（Collocation Methods）
+
+先绘制一条“原始”轨迹，然后检查这条轨迹是否符合物理规律
+
+基本上相当于寻找两个点之间的中间点的斜率，看斜率是否满足物理约束，即：
+
+$$
+slope = \frac{\Delta x}{\Delta t} \approx \dot x(\dot x (t) = f(x(t),u(t))
+$$
+
+We check if the slope at each collocation point matches the equation.
+
+我们检查每个配点处的斜率是否与动力学方程相符。
+
+
 Direct Collocation is more effective than Single Shooting for unstable / underactuated systems.
 
 对于不稳定系统或欠驱动系统，直接配点法比单重打靶法更加有效。
