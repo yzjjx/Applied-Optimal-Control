@@ -26,6 +26,18 @@ We check if the slope at each collocation point matches the equation.
 
 我们检查每个配点处的斜率是否与动力学方程相符。
 
+配点法的物理约束常被称为缺陷约束（Defect constraints）
+
+Let's assume linear splines between states.
+
+假设相邻状态之间采用线性样条插值。
+
+直接配点法：找到两个状态点的中点，然后求该点的斜率，这个点的斜率恰好是整个直线的斜率。如果要知道这个斜率是否等于我们系统的物理特性，这就没有问题了
+
+有些论文里面用h替换相邻时间 $\Delta t$
+
+隐式欧拉的精度远高于显式欧拉
+
 
 Direct Collocation is more effective than Single Shooting for unstable / underactuated systems.
 
@@ -42,7 +54,7 @@ Transcribe our optimization problem (program) using Direct Collocation and solve
 
 Assume Explicit Euler integration.
 
-使用**直接配点法（Direct Collocation）**可以将我们的优化问题转录为数学优化规划问题，并求解该优化问题。
+使用 **直接配点法（Direct Collocation）** 可以将我们的优化问题转录为数学优化规划问题，并求解该优化问题。
 
 假设采用显式欧拉积分法（Explicit Euler Integration）。
 
